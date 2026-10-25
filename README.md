@@ -1,0 +1,5 @@
+This is my CS50 final project. The goal of this project is to be a free-time companion that aligns with a person's interests, de-stressing methods and long term goals.
+
+More often than not, a lot of people these days spend too much time doomscrolling. I want this web app to be a leisure time tracker/planner. It would not outright ban doomscrolling, but it should help us make a more conscious decision on how we spend our free-time, and provide a better snapshot on how we spend our free time.
+
+The goal is to have the user reflect every fixed interval, on what they want to do with their free time (or they can do it whenever they want to). The web app should also let the user either pick what they want to do with their free time based on priority, or use a randomize selector to get them doing the tough work (because it is random, sometimes you get the "fun stuffs" as well, so you don't feel like you're doing a chore). Over time, this would also track how you use your free time by giving you a statistics of it.

@@ -24,10 +24,9 @@ def after_request(response):
 
 
 @app.route("/")
-@login_required
 def index():
     """Show portfolio of stocks"""
     id = session["user_id"]
-    query = db.execute("SELECT * FROM (SELECT stock, sum(value) as value, sum(quantity) as quantity, CAST(sum(value) AS FLOAT)/sum(quantity) as price FROM buy WHERE user = ? GROUP BY stock) WHERE quantity !=0", id)
-    cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])
-    return render_template("index.html", item=query, cash=cash)
+    #query = db.execute("SELECT * FROM (SELECT stock, sum(value) as value, sum(quantity) as quantity, CAST(sum(value) AS FLOAT)/sum(quantity) as price FROM buy WHERE user = ? GROUP BY stock) WHERE quantity !=0", id)
+    #cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])
+    return render_template("index.html")

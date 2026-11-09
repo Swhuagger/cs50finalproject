@@ -7,9 +7,7 @@ from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 
-connection = sqlite3.connect('project.db', check_same_thread=False)
-db = connection.cursor()
-db.row_factory = sqlite3.Row
+
 # Configure application
 app = Flask(__name__)
 
@@ -18,6 +16,12 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
+connection = sqlite3.connect('project.db')
+db = connection.cursor()
+db.execute(
+"CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, username TEXT NOT NULL, hash TEXT NOT NULL )")
+connection.commit()
+connection.close()
 
 @app.after_request
 def after_request(response):
@@ -59,6 +63,9 @@ def login():
             return apology("must provide password", 403)
 
         # Query database for username
+        connection = sqlite3.connect('project.db')
+        db = connection.cursor()
+        db.row_factory = sqlite3.Row
         db.execute(
             "SELECT * FROM users WHERE username = ?", (request.form.get("username"),)
         )
@@ -71,6 +78,8 @@ def login():
 
         # Remember which user has logged in
         session["user_id"] = rows["id"]
+
+        connection.close()
 
         # Redirect user to home page
         return redirect("/")
@@ -94,6 +103,10 @@ def register():
     """Register user"""
 
     if request.method == "POST":
+
+        connection = sqlite3.connect('project.db')
+        db = connection.cursor()
+        db.row_factory = sqlite3.Row
 
         db.execute(
             "SELECT * FROM users WHERE username = ?", (request.form.get("username"),)
@@ -126,8 +139,54 @@ def register():
 
         connection.commit()
 
+        connection.close()
+
         # Redirect user to home page
         return redirect("/")
 
     else:
         return render_template("register.html")
+
+@app.route("/changepass", methods=["GET", "POST"])
+@login_required
+def changepass():
+    if request.method == "GET":
+        return render_template("changepass.html")
+    elif request.method == "POST":
+
+        connection = sqlite3.connect('project.db')
+        db = connection.cursor()
+        db.row_factory = sqlite3.Row
+
+        db.execute(
+            "SELECT * FROM users WHERE id = ?", (session["user_id"],)
+        )
+
+        rows = db.fetchone()
+
+        if not request.form.get("current"):
+            return apology("must provide current password", 400)
+
+        elif not check_password_hash(
+            rows["hash"], request.form.get("current")
+        ):
+            return apology("current password incorrect", 400)
+
+        # Ensure password was submitted
+        elif not request.form.get("new"):
+            return apology("must provide new password", 400)
+
+        elif not request.form.get("confirm"):
+            return apology("please reconfirm password", 400)
+
+        elif request.form.get("confirm") != request.form.get("new"):
+            return apology("password is not consistent", 400)
+
+        password = request.form.get("new")
+        hash = generate_password_hash(password)
+        db.execute("UPDATE users SET hash =? where id = ?", (hash, session["user_id"]))
+        connection.commit()
+
+        connection.close()
+
+        return redirect("/")

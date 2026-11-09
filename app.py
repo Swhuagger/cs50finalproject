@@ -9,6 +9,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 connection = sqlite3.connect('project.db', check_same_thread=False)
 db = connection.cursor()
+db.row_factory = sqlite3.Row
 # Configure application
 app = Flask(__name__)
 
@@ -65,7 +66,7 @@ def login():
             return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
-        session["user_id"] = rows[0]["id"]
+        session["user_id"] = rows["id"]
 
         # Redirect user to home page
         return redirect("/")
@@ -117,9 +118,9 @@ def register():
         password = request.form.get("password")
         hash = generate_password_hash(password)
 
-        db.execute("INSERT INTO users (username, hash) VALUES(?, ?)", name, hash)
+        db.execute("INSERT INTO users (username, hash) VALUES(?, ?)", (name, hash))
 
-        db.commit()
+        connection.commit()
 
         # Redirect user to home page
         return redirect("/")

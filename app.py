@@ -7,7 +7,7 @@ from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 
-connection = sqlite3.connect('my_database.db')
+connection = sqlite3.connect('project.db')
 db = connection.cursor()
 # Configure application
 app = Flask(__name__)
@@ -36,7 +36,7 @@ def index():
     #cash = db.execute("SELECT cash FROM users WHERE id = ?", session["user_id"])
     return render_template("index.html")
 
-@app.route("/login")
+@app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
 
@@ -73,3 +73,52 @@ def login():
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    """Log user out"""
+
+    # Forget any user_id
+    session.clear()
+
+    # Redirect user to login form
+    return redirect("/")
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    """Register user"""
+
+    if request.method == "POST":
+
+        rows = db.execute(
+            "SELECT * FROM users WHERE username = ?", request.form.get("username")
+        )
+
+        if not request.form.get("username"):
+            return apology("must provide username", 400)
+
+        # Ensure username exists and password is correct
+        elif len(rows) == 1:
+            return apology("username has been taken", 400)
+
+        # Ensure password was submitted
+        elif not request.form.get("password"):
+            return apology("must provide password", 400)
+
+        elif not request.form.get("confirmation"):
+            return apology("please reconfirm password", 400)
+
+        elif request.form.get("confirmation") != request.form.get("password"):
+            return apology("password is not consistent", 400)
+
+        name = request.form.get("username")
+        password = request.form.get("password")
+        hash = generate_password_hash(password)
+
+        db.execute("INSERT INTO users (username, hash) VALUES(?, ?)", name, hash)
+
+        # Redirect user to home page
+        return redirect("/")
+
+    else:
+        return render_template("register.html")

@@ -42,6 +42,10 @@ def login():
     """Log user in"""
 
     # Forget any user_id
+
+    if session.get("user_id") is not None:
+        return redirect("/")
+    
     session.clear()
 
     # User reached route via POST (as by submitting a form via POST)

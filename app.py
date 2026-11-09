@@ -74,6 +74,7 @@ def login():
         if rows is None or not check_password_hash(
             rows["hash"], request.form.get("password")
         ):
+            connection.close()
             return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
@@ -115,20 +116,25 @@ def register():
         rows = db.fetchone()
 
         if not request.form.get("username"):
+            connection.close()
             return apology("must provide username", 400)
 
         # Ensure username exists and password is correct
         elif rows is not None:
+            connection.close()
             return apology("username has been taken", 400)
 
         # Ensure password was submitted
         elif not request.form.get("password"):
+            connection.close()
             return apology("must provide password", 400)
 
         elif not request.form.get("confirmation"):
+            connection.close()
             return apology("please reconfirm password", 400)
 
         elif request.form.get("confirmation") != request.form.get("password"):
+            connection.close()
             return apology("password is not consistent", 400)
 
         name = request.form.get("username")
@@ -165,21 +171,26 @@ def changepass():
         rows = db.fetchone()
 
         if not request.form.get("current"):
+            connection.close()
             return apology("must provide current password", 400)
 
         elif not check_password_hash(
             rows["hash"], request.form.get("current")
         ):
+            connection.close()
             return apology("current password incorrect", 400)
 
         # Ensure password was submitted
         elif not request.form.get("new"):
+            connection.close()
             return apology("must provide new password", 400)
 
         elif not request.form.get("confirm"):
+            connection.close()
             return apology("please reconfirm password", 400)
 
         elif request.form.get("confirm") != request.form.get("new"):
+            connection.close()
             return apology("password is not consistent", 400)
 
         password = request.form.get("new")

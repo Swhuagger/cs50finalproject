@@ -60,7 +60,7 @@ def login():
         rows = db.fetchone()
         # Ensure username exists and password is correct
         if rows is None or not check_password_hash(
-            rows[0]["hash"], request.form.get("password")
+            rows["hash"], request.form.get("password")
         ):
             return apology("invalid username and/or password", 403)
 
@@ -91,7 +91,7 @@ def register():
     if request.method == "POST":
 
         db.execute(
-            "SELECT * FROM users WHERE username = ?", request.form.get("username")
+            "SELECT * FROM users WHERE username = ?", (request.form.get("username"),)
         )
 
         rows = db.fetchone()
@@ -100,7 +100,7 @@ def register():
             return apology("must provide username", 400)
 
         # Ensure username exists and password is correct
-        elif len(rows) == 1:
+        elif rows is not None:
             return apology("username has been taken", 400)
 
         # Ensure password was submitted

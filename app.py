@@ -7,7 +7,7 @@ from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 
-connection = sqlite3.connect('project.db')
+connection = sqlite3.connect('project.db', check_same_thread=False)
 db = connection.cursor()
 # Configure application
 app = Flask(__name__)
@@ -54,12 +54,12 @@ def login():
             return apology("must provide password", 403)
 
         # Query database for username
-        rows = db.execute(
-            "SELECT * FROM users WHERE username = ?", request.form.get("username")
+        db.execute(
+            "SELECT * FROM users WHERE username = ?", (request.form.get("username"),)
         )
-
+        rows = db.fetchone()
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(
+        if rows is None or not check_password_hash(
             rows[0]["hash"], request.form.get("password")
         ):
             return apology("invalid username and/or password", 403)
@@ -90,9 +90,11 @@ def register():
 
     if request.method == "POST":
 
-        rows = db.execute(
+        db.execute(
             "SELECT * FROM users WHERE username = ?", request.form.get("username")
         )
+
+        rows = db.fetchone()
 
         if not request.form.get("username"):
             return apology("must provide username", 400)
@@ -116,6 +118,8 @@ def register():
         hash = generate_password_hash(password)
 
         db.execute("INSERT INTO users (username, hash) VALUES(?, ?)", name, hash)
+
+        db.commit()
 
         # Redirect user to home page
         return redirect("/")
